@@ -1,0 +1,14 @@
+DenyAndConquer/
+│
+├── frontend/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+│
+├── backend/
+│   ├── Server.java
+│   ├── ClientHandling.java
+│   ├── GameState.java
+│   └── Client.java
+│
+└── README.md
