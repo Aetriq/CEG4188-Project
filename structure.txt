@@ -1,14 +1,19 @@
-DenyAndConquer/
-│
-├── frontend/
-│   ├── index.html
-│   ├── style.css
-│   └── script.js
-│
-├── backend/
-│   ├── Server.java
-│   ├── ClientHandling.java
-│   ├── GameState.java
-│   └── Client.java
-│
-└── README.md
+ceg4188.grp2
+  ├─ main
+  │   ├ Main.java
+  │   └ MenuScreen.java
+  ├─ lobby
+  │   └ LobbyScreen.java
+  ├─ client
+  │   ├ ClientLauncher.java
+  │   ├ ClientProtocolHandler.java
+  │   ├ GameScreen.java
+  │   └ GamePanel.java
+  ├─ server
+  │   ├ ServerLauncher.java
+  │   ├ ServerClientHandler.java
+  │   └ CookieManager.java
+  └─ shared
+      ├ Cookie.java
+      ├ GameState.java
+      └ Protocol.java
