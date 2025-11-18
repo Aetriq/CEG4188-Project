@@ -1,13 +1,14 @@
 package ceg4188.grp2.client;
 
-import ceg4188.grp2.client.*;
-import ceg4188.grp2.shared.Protocol;
-
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
+
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
+import ceg4188.grp2.shared.Protocol;
 
 /**
  * Receives messages from server and updates Lobby and Game screens.

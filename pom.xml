@@ -3,25 +3,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
            http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>ceg418.grp2</groupId>
-  <artifactId>CookieClickerMultiplayer</artifactId>
+  <groupId>ceg4188.grp2</groupId> <artifactId>CookieClickerMultiplayer</artifactId>
   <version>1.0-SNAPSHOT</version>
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
   </properties>
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-      </resource>
-    </resources>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.10.1</version>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -32,8 +21,7 @@
           </descriptorRefs>
           <archive>
             <manifest>
-              <mainClass>ceg418.grp2.main.Main</mainClass>
-            </manifest>
+              <mainClass>ceg4188.grp2.main.Launcher</mainClass> </manifest>
           </archive>
         </configuration>
         <executions>
@@ -47,3 +35,4 @@
     </plugins>
   </build>
 </project>
+

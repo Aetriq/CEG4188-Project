@@ -6,7 +6,6 @@ import java.awt.Font;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -50,11 +49,40 @@ public class GameScreen extends JFrame {
 
     public void showLeaderboard(String csv){
         SwingUtilities.invokeLater(() -> {
+            // Parse the leaderboard data
             String[] parts = csv.split(",");
             StringBuilder sb = new StringBuilder();
+            sb.append("Game Over! Final Scores:\n\n");
+            
             int i=1;
-            for (String p: parts) { sb.append(i++).append(". ").append(p).append("\n"); }
-            JOptionPane.showMessageDialog(this, sb.toString(), "Leaderboard", JOptionPane.INFORMATION_MESSAGE);
+            for (String p: parts) { 
+                // Format: "1. PlayerName: 100"
+                sb.append(i++).append(". ").append(p.replace(":", ": ")).append("\n"); 
+            }
+
+            // --- Create a new window (JFrame) ---
+            JFrame leaderboardFrame = new JFrame("Leaderboard");
+            leaderboardFrame.setSize(400, 500);
+            leaderboardFrame.setLocationRelativeTo(this); // Center on the game window
+            leaderboardFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window
+
+            // Add a text area to show the scores
+            JTextArea leaderboardText = new JTextArea(sb.toString());
+            leaderboardText.setEditable(false);
+            leaderboardText.setFont(new Font("Arial", Font.BOLD, 18));
+            leaderboardText.setMargin(new java.awt.Insets(15, 15, 15, 15)); // Add padding
+
+            // Add the text area to a scroll pane, and the scroll pane to the frame
+            leaderboardFrame.add(new JScrollPane(leaderboardText));
+
+            // Show the new window
+            leaderboardFrame.setVisible(true);
+
+            // Disable the main game panel now that the game is over
+            panel.setEnabled(false);
+            
+            // --- Old JOptionPane (removed) ---
+            // JOptionPane.showMessageDialog(this, sb.toString(), "Leaderboard", JOptionPane.INFORMATION_MESSAGE);
         });
     }
 }

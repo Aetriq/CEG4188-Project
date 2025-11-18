@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -26,7 +27,8 @@ public class GamePanel extends JPanel {
 
     private final GameScreen parent;
     private final Map<Integer, ViewCookie> cookies = new ConcurrentHashMap<>();
-    private BufferedImage bg, cookieImg, cookieOcc;
+    private ImageIcon bg; // <-- NEW
+    private BufferedImage cookieImg, cookieOcc; // <-- Cookie images can stay as BufferedImage
     private PrintWriter out;
     private String username = "Player";
 
@@ -51,9 +53,14 @@ public class GamePanel extends JPanel {
     public void setUsername(String u){ this.username=u; }
 
     private void loadImages(){
-        try (InputStream is = getClass().getResourceAsStream("/background.png")) { if (is!=null) bg = ImageIO.read(is); } catch (Exception ignored){}
-        try (InputStream is = getClass().getResourceAsStream("/cookie.png")) { if (is!=null) cookieImg = ImageIO.read(is); } catch (Exception ignored){}
-        try (InputStream is = getClass().getResourceAsStream("/cookie_occupied.png")) { if (is!=null) cookieOcc = ImageIO.read(is); } catch (Exception ignored){}
+        try {
+            // Use getResource() which returns a URL, perfect for ImageIcon
+            bg = new ImageIcon(getClass().getResource("/images/background.png")); // <-- NEW
+        } catch (Exception ignored) { System.err.println("Failed to load background"); }
+        
+        // These are still fine as BufferedImages
+        try (InputStream is = getClass().getResourceAsStream("/images/cookie.png")) { if (is!=null) cookieImg = ImageIO.read(is); } catch (Exception ignored){}
+        try (InputStream is = getClass().getResourceAsStream("/images/cookie_occupied.png")) { if (is!=null) cookieOcc = ImageIO.read(is); } catch (Exception ignored){}
     }
 
     private int toWorldX(int px) { return (int)(px * (WORLD_W / (double)getWidth())); }
@@ -78,8 +85,9 @@ public class GamePanel extends JPanel {
     public void despawnCookie(int id){ cookies.remove(id); }
     public void moveCookie(int id,int x,int y,long ts){
         ViewCookie v = cookies.get(id);
-        if (v==null) spawnCookie(id,x,y,1);
-        else v.setTarget(x,y);
+        if (v != null) {
+            v.setTarget(x,y);
+        }
     }
     public void setCookieState(int id,int x,int y,boolean locked,String lockedBy,int score){
         ViewCookie v = cookies.get(id);
@@ -102,8 +110,12 @@ public class GamePanel extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
 
         // draw background
-        if (bg!=null) g2.drawImage(bg, 0,0,getWidth(),getHeight(), null);
-        else { g2.setColor(new Color(200,230,255)); g2.fillRect(0,0,getWidth(),getHeight()); }
+        if (bg!=null) {
+            // Use .getImage() and pass 'this' as the ImageObserver
+            g2.drawImage(bg.getImage(), 0,0,getWidth(),getHeight(), this); // <-- NEW
+        } else { 
+            g2.setColor(new Color(200,230,255)); g2.fillRect(0,0,getWidth(),getHeight()); 
+        }
 
         double sx = getWidth() / (double) WORLD_W;
         double sy = getHeight() / (double) WORLD_H;
@@ -122,7 +134,7 @@ public class GamePanel extends JPanel {
             }
 
             // score floating number
-            g2.setColor(Color.BLACK);
+            g2.setColor(Color.WHITE);
             g2.setFont(new Font("SansSerif", Font.BOLD, 14));
             String s = String.valueOf(v.score);
             int w = g2.getFontMetrics().stringWidth(s);

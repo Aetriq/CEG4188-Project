@@ -1,10 +1,19 @@
 package ceg4188.grp2.main;
 
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+
 import ceg4188.grp2.client.Client;
 import ceg4188.grp2.server.Server;
-
-import javax.swing.*;
-import java.awt.*;
 
 public class MenuScreen extends JFrame {
     private final JTextField usernameField = new JTextField("Player1");
@@ -64,11 +73,17 @@ public class MenuScreen extends JFrame {
         if (hostBtn.isSelected()) {
             // Start server only
             new Thread(() -> Server.start(p)).start();
-            JOptionPane.showMessageDialog(this, "Server started on port " + p + ". Now run a client and join to play.");
+            JOptionPane.showMessageDialog(this, "Server started on port " + p + ". Close this window to terminate the server.");
+            
+            // Disable buttons to prevent re-starting
+            startBtn.setEnabled(false);
+            hostBtn.setEnabled(false);
+            joinBtn.setEnabled(false);
         } else {
             // Start client only
             new Thread(() -> Client.start(u, h, p)).start();
+            dispose(); // <-- MOVED! Only dispose when starting a client.
         }
-        dispose();
+        // dispose(); // <-- OLD (INCORRECT) LOCATION
     }
 }
