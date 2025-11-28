@@ -104,7 +104,13 @@ public class ClientProtocolHandler extends Thread {
             case Protocol.CLICKED -> {
                 String[] f = rest.split(" ");
                 int id=Integer.parseInt(f[0]); String who=f[1]; int score=Integer.parseInt(f[2]); int total=Integer.parseInt(f[3]);
-                if (game!=null) { game.appendMessage(who + " clicked cookie " + id + " +" + score); game.updateTotal(total); game.getGamePanel().releaseCookieVisual(id); }
+                if (game!=null) { game.appendMessage(who + " clicked cookie " + id + " +" + score); game.updateTotal(total); 
+                
+                // Animation to start the countdown
+                if (game.getGamePanel() != null){
+                    game.getGamePanel().startCookieClickAnimation(id);
+                }
+                game.getGamePanel().releaseCookieVisual(id);}
             }
             case Protocol.COOKIE_COUNT -> {
                 if (game!=null) game.updateTotal(Integer.parseInt(rest.trim()));
