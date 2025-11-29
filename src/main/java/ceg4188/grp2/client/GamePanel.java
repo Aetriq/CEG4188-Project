@@ -39,6 +39,9 @@ public class GamePanel extends JPanel {
     private BufferedImage[] cookieFrames = new BufferedImage[5]; // For the countdown animation.
     private Map<Integer, ViewCookie> animatingCookies = new ConcurrentHashMap<>();
 
+    private int hoveredCookieId = -1; // This tracks which cookie is being hovered.
+    private final Color HOVER_COLOR = new Color(0, 255, 0, 100); // Semi-transparent green color.
+
     private final GameScreen parent;
     private final Map<Integer, ViewCookie> cookies = new ConcurrentHashMap<>();
     private ImageIcon bg; // <-- NEW
@@ -183,6 +186,39 @@ public class GamePanel extends JPanel {
         }
     }
 
+    // Better hitbox handling
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        // This adds a mouse motion listener for hover effects
+        addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                updateHoveredCookie(e.getX(), e.getY());
+            }
+        });
+    }
+
+    private void updateHoveredCookie(int px, int py) {
+        int wx = toWorldX(px), wy = toWorldY(py);
+        int previousHovered = hoveredCookieId;
+        hoveredCookieId = -1;
+        
+        for (ViewCookie vc : cookies.values()) {
+            int dx = wx - vc.x, dy = wy - vc.y;
+            // Slightly larger hitbox for better usability (increased from 28 to 35)
+            if (dx*dx + dy*dy <= 35*35) {
+                hoveredCookieId = vc.id;
+                break;
+            }
+        }
+        
+        // Only repaint if hover state changed
+        if (hoveredCookieId != previousHovered) {
+            repaint();
+        }
+    }
+
     /// NEw method for cookie drawing
     private void drawCookie(Graphics2D g2, ViewCookie v){
         int size = 56, half = size / 2;
@@ -194,6 +230,13 @@ public class GamePanel extends JPanel {
             g2.scale(v.scale, v.scale);
             g2.translate(-cx, -cy);
         }
+
+        // New hover effect
+        if(v.id == hoveredCookieId && !v.locked){
+            g2.setColor(HOVER_COLOR);
+            g2.fillOval(cx - half - 5, cy - half - 5, size + 10, size + 10);
+        }
+
         BufferedImage imgToUse = null;
 
         // Chose the image depending on the score
@@ -259,6 +302,13 @@ public class GamePanel extends JPanel {
             String lockText = "Locked: " + v.lockedBy;
             int lockWidth = g2.getFontMetrics().stringWidth(lockText);
             g2.drawString(lockText, cx - lockWidth/2, cy + half + 15);
+        }
+
+        // Draw the hibox outline
+        if(v.id == hoveredCookieId){
+            g2.setColor(Color.GREEN);
+            g2.setStroke(new java.awt.BasicStroke(2));
+            g2.drawOval(cx -35, cy - 35, 70, 70);
         }
 
         // Reset transforms if we applied animation
