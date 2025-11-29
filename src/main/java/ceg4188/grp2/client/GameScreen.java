@@ -1,8 +1,13 @@
 package ceg4188.grp2.client;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
+
+// Added timer
+import javax.swing.Timer;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -12,11 +17,21 @@ import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+// Added awt.events
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
 public class GameScreen extends JFrame {
     private final GamePanel panel;
     private final JLabel totalLabel = new JLabel("Score: 0");
+
+    private final JLabel timerLabel = new JLabel("Time: 60s"); // New timer display.
+
     private final JTextArea log = new JTextArea();
     private String username = "Player";
+    private Timer gameTimer; // Game timer.
+    private int timeRemaining = 60; // Has a 60 seconds game time.
+
 
     public GameScreen() {
         setTitle("Cookie Clicker - Game");
@@ -30,15 +45,64 @@ public class GameScreen extends JFrame {
 
         JPanel right = new JPanel(new BorderLayout());
         right.setPreferredSize(new Dimension(300,720));
+
+        //Create a new panel for top information.
+        // Adds 2 new ros for a score and a timer
+        JPanel topInfo = new JPanel(new GridLayout(2, 1)); 
+
         totalLabel.setHorizontalAlignment(SwingConstants.CENTER);
         totalLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        right.add(totalLabel, BorderLayout.NORTH);
+
+
+        // New timer label
+        timerLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        timerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        timerLabel.setForeground(Color.BLUE);
+
+        topInfo.add(totalLabel);
+        topInfo.add(timerLabel); // Add a timer to layout.
+        right.add(topInfo, BorderLayout.NORTH);
 
         log.setEditable(false);
         right.add(new JScrollPane(log), BorderLayout.CENTER);
         add(right, BorderLayout.EAST);
 
         setVisible(true);
+
+        // New game timer
+        startGameTimer();
+    }
+
+
+    // New method for the game timer countdown.
+    private void startGameTimer(){
+        gameTimer = new Timer(1000, new ActionListener() { // Update every second
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                timeRemaining--;
+                timerLabel.setText("Time: " + timeRemaining + "s");
+                
+                // Change color when time is running out
+                if (timeRemaining <= 10) {
+                    timerLabel.setForeground(Color.RED);
+                } else if (timeRemaining <= 30) {
+                    timerLabel.setForeground(Color.ORANGE);
+                }
+                
+                if (timeRemaining <= 0) {
+                    gameTimer.stop();
+                    timerLabel.setText("TIME UP!");
+                    // You can add game over logic here
+                    appendMessage("Game Over! Time's up!");
+                }
+            }
+        });
+        gameTimer.start();
+    }
+
+    // New method to get the timer
+    public Timer getGameTimer(){
+        return gameTimer;
     }
 
     public GamePanel getGamePanel(){ return panel; }

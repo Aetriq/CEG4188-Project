@@ -94,7 +94,8 @@ public class GamePanel extends JPanel {
         try (InputStream is = getClass().getResourceAsStream("/images/cookie_occupied.png")) { if (is!=null) cookieOcc = ImageIO.read(is); } catch (Exception ignored){}
     }
 
-    // New method for countdown animation
+    // New method for countdown animation.
+    // Makes sure it syncs with the score.
     public void startCookieClickAnimation(int cookieId){
         ViewCookie v = cookies.get(cookieId);
         if (v != null){
@@ -118,6 +119,15 @@ public class GamePanel extends JPanel {
                             cookie.animating = false;
                             animatingCookies.remove(cookieId);
                             ((Timer)e.getSource()).stop();
+
+                            // Decrease the cookie score.
+                            if (cookie.score < 0){
+                                cookie.score--; // This decreases the score by 1
+                                if (cookie.score <=0){
+                                    // If the score becomes 0, then use the destruction animation.
+                                    startCookieDestructionAnimation(cookieId);
+                                }
+                            }
                         }
                         repaint();
                     } else {
@@ -192,15 +202,25 @@ public class GamePanel extends JPanel {
         // Add red tint overlay
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
         } else{
-            if(v.score >=1 && v.score <= 5 && cookieFrames[5 - v.score] != null){
-                // This shows the image that matches the current score of the cookie
-                imgToUse = cookieFrames[5 - v.score];
+            if(v.score >=1 && v.score <= 5){
+                // This shows the image that matches the current score of the cookie.
+                // score 5 --> cookie_5.png, score 4 --> cookie_4.png ...
+
+                int imageIndex = 5 - v.score; // score 5 --> index 0 ect.
+
+                if(cookieFrames != null && imageIndex >= 0 && imageIndex < cookieFrames.length && cookieFrames[imageIndex] != null){
+                    imgToUse = cookieFrames[imageIndex];
+                }else{
+                    imgToUse = cookieImg; // This is the fallback.
+                }
+
             }else{
                 // Otherwise we just use the default cookie image.
                 imgToUse = cookieImg;
             }
         }
-
+        
+        
         // Here we draw the cookie image or fallback
         if (imgToUse != null) {
         g2.drawImage(imgToUse, cx - half, cy - half, size, size, null);
@@ -297,7 +317,7 @@ public class GamePanel extends JPanel {
         v.x=x; v.y=y; v.locked=locked; v.lockedBy=lockedBy; v.score=score;
         cookies.put(id,v);
     }
-    
+
     public void releaseCookieVisual(int id){ ViewCookie v = cookies.get(id); if (v!=null) { v.locked=false; v.lockedBy="-"; } }
 
     private void tick() {

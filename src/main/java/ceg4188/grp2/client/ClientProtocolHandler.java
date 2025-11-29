@@ -101,13 +101,20 @@ public class ClientProtocolHandler extends Thread {
                 if (who.equals(username)) out.println(Protocol.CLICK + " " + id);
             }
             case Protocol.LOCK_DENIED -> { /* show message */ }
+
             case Protocol.CLICKED -> {
                 String[] f = rest.split(" ");
-                int id=Integer.parseInt(f[0]); String who=f[1]; int score=Integer.parseInt(f[2]); int total=Integer.parseInt(f[3]);
-                if (game!=null) { game.appendMessage(who + " clicked cookie " + id + " +" + score); game.updateTotal(total); 
+                int id=Integer.parseInt(f[0]); 
+                String who=f[1]; 
+                int score=Integer.parseInt(f[2]); 
+                int total=Integer.parseInt(f[3]);
+                if (game!=null) { 
+                    game.appendMessage(who + " clicked cookie " + id + " +" + score); 
+                    game.updateTotal(total); 
                 
-                // Animation to start the countdown
+                // Animation to start the countdown and update the cookie score.
                 if (game.getGamePanel() != null){
+                    // Get the current cookie and decrease its score.
                     game.getGamePanel().startCookieClickAnimation(id);
                 }
                 game.getGamePanel().releaseCookieVisual(id);}
