@@ -97,6 +97,21 @@ public class GamePanel extends JPanel {
         try (InputStream is = getClass().getResourceAsStream("/images/cookie_occupied.png")) { if (is!=null) cookieOcc = ImageIO.read(is); } catch (Exception ignored){}
     }
 
+    // New method to get the current cookie score.
+    public int getCookieScore(int cookieId){
+        ViewCookie v = cookies.get(cookieId);
+        return (v != null) ? v.score : 0;
+    }
+
+    // New method to update the score visually
+    public void updateCookieVisualScore(int cookieId){
+        ViewCookie v = cookies.get(cookieId);
+        if (v != null && v.score > 0){
+            v.score--; // Deacreate the score by 1 on the client side.
+        }
+    }
+
+
     // New method for countdown animation.
     // Makes sure it syncs with the score.
     public void startCookieClickAnimation(int cookieId){
@@ -122,15 +137,6 @@ public class GamePanel extends JPanel {
                             cookie.animating = false;
                             animatingCookies.remove(cookieId);
                             ((Timer)e.getSource()).stop();
-
-                            // Decrease the cookie score.
-                            if (cookie.score < 0){
-                                cookie.score--; // This decreases the score by 1
-                                if (cookie.score <=0){
-                                    // If the score becomes 0, then use the destruction animation.
-                                    startCookieDestructionAnimation(cookieId);
-                                }
-                            }
                         }
                         repaint();
                     } else {

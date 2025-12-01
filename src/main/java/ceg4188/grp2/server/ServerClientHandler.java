@@ -131,11 +131,24 @@ public class ServerClientHandler extends Thread {
                         break;
                     }
                     int gained = state.clickCookie(id, username);
-                    broadcast(Protocol.CLICKED + " " + id + " " + username + " " + gained + " " + state.getTotalScore());
+
+                    // Get the updated cookie after a click
+                    Cookie updatedCookie = state.getCookie(id);
+                    if (updatedCookie != null){
+                        // This means the score > 0
+                        broadcast(Protocol.COOKIE_STATE + " " + id + " " + 
+                        updatedCookie.getX() + " " + updatedCookie.getY() + " 0 - " 
+                        + updatedCookie.getScore());
+                        
+                        broadcast(Protocol.CLICKED + " " + id + " " + username + " " + 0 + " " + state.getTotalScore());
+                    }else{
+                        // The Cookie has reached a score of 0, give the points and despawn;
+                        broadcast(Protocol.CLICKED + " " + id + " " + username + " " + gained + " " + state.getTotalScore());
+                        broadcast(Protocol.COOKIE_DESPAWN + " " + id);
+                    }
+                    
                     broadcast(Protocol.COOKIE_COUNT + " " + state.getTotalScore());
-                    // despawn cookie after click
-                    state.despawnCookie(id);
-                    broadcast(Protocol.COOKIE_DESPAWN + " " + id);
+                    
                 } catch (NumberFormatException ex) {
                     send(Protocol.ERROR + " Invalid cookie id for CLICK");
                 }

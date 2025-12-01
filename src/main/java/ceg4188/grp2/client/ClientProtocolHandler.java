@@ -106,18 +106,27 @@ public class ClientProtocolHandler extends Thread {
                 String[] f = rest.split(" ");
                 int id=Integer.parseInt(f[0]); 
                 String who=f[1]; 
-                int score=Integer.parseInt(f[2]); 
+                int scoreGained=Integer.parseInt(f[2]); 
                 int total=Integer.parseInt(f[3]);
                 if (game!=null) { 
-                    game.appendMessage(who + " clicked cookie " + id + " +" + score); 
+                    // Only show the messages if the cookie has despawned.
+                    if (scoreGained > 0){
+                        game.appendMessage(who + " clicked cookie " + id + " +" + scoreGained); 
+                    }else{
+                        game.appendMessage(who + " clicked cookie " + id + " (" + 
+                        (game.getGamePanel().getCookieScore(id) -1) + " clicks are left");
+                    }
+
                     game.updateTotal(total); 
                 
-                // Animation to start the countdown and update the cookie score.
-                if (game.getGamePanel() != null){
-                    // Get the current cookie and decrease its score.
-                    game.getGamePanel().startCookieClickAnimation(id);
+                    // Animation to start the countdown and update the cookie score.
+                    if (game.getGamePanel() != null){
+                        // Get the current cookie and decrease its score.
+                        game.getGamePanel().updateCookieVisualScore(id);
+                        game.getGamePanel().startCookieClickAnimation(id);
+                    }
+                    game.getGamePanel().releaseCookieVisual(id);
                 }
-                game.getGamePanel().releaseCookieVisual(id);}
             }
             case Protocol.COOKIE_COUNT -> {
                 if (game!=null) game.updateTotal(Integer.parseInt(rest.trim()));

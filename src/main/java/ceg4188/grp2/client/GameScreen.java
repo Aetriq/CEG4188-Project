@@ -8,11 +8,16 @@ import java.awt.GridLayout;
 
 // Added timer
 import javax.swing.Timer;
-
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -115,38 +120,94 @@ public class GameScreen extends JFrame {
         SwingUtilities.invokeLater(() -> {
             // Parse the leaderboard data
             String[] parts = csv.split(",");
-            StringBuilder sb = new StringBuilder();
-            sb.append("Game Over! Final Scores:\n\n");
-            
-            int i=1;
-            for (String p: parts) { 
-                // Format: "1. PlayerName: 100"
-                sb.append(i++).append(". ").append(p.replace(":", ": ")).append("\n"); 
-            }
+
+            // New leaderboard
+            JDialog leaderboardDialog = new JDialog(this, "Game Over - Leaderboard", true);
 
             // --- Create a new window (JFrame) ---
-            JFrame leaderboardFrame = new JFrame("Leaderboard");
-            leaderboardFrame.setSize(400, 500);
-            leaderboardFrame.setLocationRelativeTo(this); // Center on the game window
-            leaderboardFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Close only this window
+            leaderboardDialog.setSize(450, 500);
+            leaderboardDialog.setLocationRelativeTo(this); // Center on the game window
+            leaderboardDialog.setLayout(new BorderLayout(10, 10));
+            leaderboardDialog.getContentPane().setBackground(new Color(240, 248, 255));
+
+            // TItle for the game over
+             JLabel titleLabel = new JLabel("Game Over!", SwingConstants.CENTER);
+            titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+            titleLabel.setForeground(new Color(139, 69, 19));
+            titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+            leaderboardDialog.add(titleLabel, BorderLayout.NORTH);
 
             // Add a text area to show the scores
-            JTextArea leaderboardText = new JTextArea(sb.toString());
-            leaderboardText.setEditable(false);
-            leaderboardText.setFont(new Font("Arial", Font.BOLD, 18));
-            leaderboardText.setMargin(new java.awt.Insets(15, 15, 15, 15)); // Add padding
+            JPanel scoresPanel = new JPanel();
+            scoresPanel.setLayout(new BoxLayout(scoresPanel, BoxLayout.Y_AXIS));
+            scoresPanel.setBackground(Color.WHITE);
+            scoresPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-            // Add the text area to a scroll pane, and the scroll pane to the frame
-            leaderboardFrame.add(new JScrollPane(leaderboardText));
+             JLabel scoresTitle = new JLabel("Final Scores:", SwingConstants.CENTER);
+            scoresTitle.setFont(new Font("Arial", Font.BOLD, 20));
+            scoresTitle.setAlignmentX(CENTER_ALIGNMENT);
+            scoresPanel.add(scoresTitle);
+            scoresPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-            // Show the new window
-            leaderboardFrame.setVisible(true);
+            // Better formating
+            for (int i = 0; i < parts.length; i++){
+                String[] playerScore = parts[i].split(":");
+                if (playerScore.length == 2) {
+                    String playerName = playerScore[0].trim();
+                    String score = playerScore[1].trim();
+                    
+                    JPanel playerPanel = new JPanel(new BorderLayout());
+                    playerPanel.setBackground(Color.WHITE);
+                    playerPanel.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
+                    playerPanel.setMaximumSize(new Dimension(400, 40));
+                    
+                    JLabel rankLabel = new JLabel((i + 1) + ". ");
+                    rankLabel.setFont(new Font("Arial", Font.BOLD, 16));
+                    rankLabel.setForeground(new Color(139, 69, 19));
+                    
+                    JLabel nameLabel = new JLabel(playerName);
+                    nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
+                    
+                    JLabel scoreLabel = new JLabel(score + " points");
+                    scoreLabel.setFont(new Font("Arial", Font.BOLD, 16));
+                    scoreLabel.setForeground(new Color(0, 100, 0));
+                    
+                    playerPanel.add(rankLabel, BorderLayout.WEST);
+                    playerPanel.add(nameLabel, BorderLayout.CENTER);
+                    playerPanel.add(scoreLabel, BorderLayout.EAST);
+                    
+                    scoresPanel.add(playerPanel);
+                    
+                    // Add separators bettweeen players, execpt the last.
+                    if (i < parts.length - 1) {
+                        scoresPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
+                    }
+                }
+            }
+
+            JScrollPane scrollPane = new JScrollPane(scoresPanel);
+            scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+            leaderboardDialog.add(scrollPane, BorderLayout.CENTER);
+
+            // For the close button
+            JButton closeButton = new JButton("Close");
+            closeButton.setBackground(new Color(139, 69, 19));
+            closeButton.setForeground(Color.WHITE);
+            closeButton.setFont(new Font("Arial", Font.BOLD, 14));
+            closeButton.setFocusPainted(false);
+            closeButton.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
+            closeButton.addActionListener(e -> leaderboardDialog.dispose());
+
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setBackground(new Color(240, 248, 255));
+            buttonPanel.add(closeButton);
+            leaderboardDialog.add(buttonPanel, BorderLayout.SOUTH);
+            
+            leaderboardDialog.setVisible(true);
 
             // Disable the main game panel now that the game is over
             panel.setEnabled(false);
-            
-            // --- Old JOptionPane (removed) ---
-            // JOptionPane.showMessageDialog(this, sb.toString(), "Leaderboard", JOptionPane.INFORMATION_MESSAGE);
+
         });
     }
 }

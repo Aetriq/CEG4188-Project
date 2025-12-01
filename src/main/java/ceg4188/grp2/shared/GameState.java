@@ -63,11 +63,26 @@ public class GameState {
     public synchronized int clickCookie(int id, String username){
         Cookie c = cookies.get(id);
         if (c==null) return -1;
-        int s = c.getScore();
+
+        // Decrease the cookie score by 1.
+        int currentScore = c.getScore();
+        if (currentScore > 0){
+            currentScore --; // Decrease the score by 1;
+            c.setScore(currentScore);
+        }
         c.unlock();
-        totalScore += s;
-        scores.put(username, scores.getOrDefault(username, 0) + s);
-        return s;
+    
+        // Only give the points when the score for a cookie is 0;
+        if (currentScore <= 0){
+            int pointsEarned = 1; // Give 1 point when the cookie is destriyed.
+            totalScore += pointsEarned;
+            scores.put(username, scores.getOrDefault(username, 0) + pointsEarned);
+            despawnCookie(id); // Remove the cookie when it reaches 0;
+            return pointsEarned; 
+        } else{
+            // The cookie still needs to be cliked.
+            return 0;
+        }
     }
 
     // settings / game control
