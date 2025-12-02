@@ -490,8 +490,11 @@ public class GamePanel extends JPanel {
             ownedCookies.remove(id);
         }
 
+        // Always set the score fromt he server first to prevent any jumps.
+        v.score = score;
+
         // Only change the animation if the score changed and it has not been destroyed
-        if (v.score != score && score > 0){
+        if (v.score > 0){
             startCookieClickAnimation(id);
         }
         

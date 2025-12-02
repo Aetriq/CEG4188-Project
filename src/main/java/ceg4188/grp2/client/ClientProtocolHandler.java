@@ -139,7 +139,6 @@ public class ClientProtocolHandler extends Thread {
                     // Animation to start the countdown and update the cookie score.
                     if (game.getGamePanel() != null){
                         // Get the current cookie and decrease its score.
-                        game.getGamePanel().updateCookieVisualScore(id);
                         game.getGamePanel().startCookieClickAnimation(id);
                     }
                 }
