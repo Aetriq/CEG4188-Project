@@ -60,10 +60,18 @@ public class ClientProtocolHandler extends Thread {
             case Protocol.JOIN_FAIL -> { JOptionPane.showMessageDialog(null, "Join failed: " + rest); }
             case Protocol.LOBBY_UPDATE -> lobby.updatePlayers(rest);
             case Protocol.LOBBY_SETTINGS -> lobby.applySettings(rest);
+
             case Protocol.START_GAME -> {
                 // startEpoch provided (not used here). Close lobby & open game
                 if (lobby != null) lobby.dispose();
-                game = new GameScreen();
+                game = new GameScreen(() -> {  // Lambda for restart
+                    // Recreate tje lobby and send JOIN again
+                    SwingUtilities.invokeLater(() -> {
+                        lobby = new LobbyScreen(username, out);
+                    });
+                    out.println(Protocol.JOIN + " " + username);
+                });
+
                 game.setUsername(username);
                 game.getGamePanel().setProtocolOut(out);
             }

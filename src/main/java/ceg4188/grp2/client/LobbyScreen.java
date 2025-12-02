@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -25,9 +26,13 @@ import ceg4188.grp2.shared.Protocol;
  * Host is first in player list.
  */
 public class LobbyScreen extends JFrame {
+    
+
     private final DefaultListModel<String> model = new DefaultListModel<>();
     private final JList<String> list = new JList<>(model);
     private final JTextArea log = new JTextArea();
+
+    private final JComboBox<String> difficultyBox = new JComboBox<>(new String[]{"Easy", "Medium", "Hard", "Extreme"});
     private final JTextField duration = new JTextField("60");
     private final JTextField minCookies = new JTextField("2");
     private final JTextField maxCookies = new JTextField("6");
@@ -36,6 +41,7 @@ public class LobbyScreen extends JFrame {
     private final JTextField spawnMin = new JTextField("2000");
     private final JTextField spawnMax = new JTextField("5000");
     private final JTextField maxAllowed = new JTextField("12");
+     
 
     private final JButton startBtn = new JButton("Start Game");
     private final PrintWriter out;
@@ -55,16 +61,23 @@ public class LobbyScreen extends JFrame {
         left.add(new JScrollPane(list), BorderLayout.CENTER);
         add(left, BorderLayout.WEST);
 
-        JPanel right = new JPanel(new GridLayout(10,1,6,6));
+        // Right panel only shows the difficulty and start button.
+        JPanel right = new JPanel(new GridLayout(3,1,6,6));
         right.setPreferredSize(new Dimension(320,720));
-        right.add(new JLabel("Duration (s)")); right.add(duration);
-        right.add(new JLabel("Min Cookies")); right.add(minCookies);
-        right.add(new JLabel("Max Cookies")); right.add(maxCookies);
-        right.add(new JLabel("Min Score")); right.add(minScore);
-        right.add(new JLabel("Max Score")); right.add(maxScore);
-        right.add(new JLabel("Spawn Min ms")); right.add(spawnMin);
-        right.add(new JLabel("Spawn Max ms")); right.add(spawnMax);
-        right.add(new JLabel("Max Allowed")); right.add(maxAllowed);
+
+        // Add difficulty
+        right.add(new JLabel("Difficulty: "));
+        right.add(difficultyBox);
+        difficultyBox.addActionListener(e -> updateSettingsForDifficulty());  // Listener to auto-set parameters
+        difficultyBox.setSelectedIndex(1);  // Default to Medium
+
+        // Internal fields
+        JPanel hiddenPanel = new JPanel();
+        hiddenPanel.add(duration); hiddenPanel.add(minCookies);
+        hiddenPanel.add(maxCookies); hiddenPanel.add(minScore);
+        hiddenPanel.setVisible(false);  // Hide from the UI
+        right.add(hiddenPanel);
+
         right.add(startBtn);
         add(right, BorderLayout.EAST);
 
@@ -81,6 +94,29 @@ public class LobbyScreen extends JFrame {
         startBtn.addActionListener(e -> onStart());
 
         setVisible(true);
+    }
+
+    // New method to set the parameters based on difficulty.
+    private void updateSettingsForDifficulty(){
+        String selected = (String) difficultyBox.getSelectedItem();
+        switch (selected) {
+            case "Easy":
+                duration.setText("120"); minCookies.setText("1"); maxCookies.setText("4"); minScore.setText("1"); 
+                maxScore.setText("2"); spawnMin.setText("3000"); spawnMax.setText("6000"); maxAllowed.setText("10");
+                break;
+            case "Medium":
+                duration.setText("60"); minCookies.setText("2"); maxCookies.setText("6"); minScore.setText("1"); 
+                maxScore.setText("5"); spawnMin.setText("2000"); spawnMax.setText("5000"); maxAllowed.setText("12");
+                break;
+            case "Hard":
+                duration.setText("45"); minCookies.setText("4"); maxCookies.setText("8"); minScore.setText("3"); 
+                maxScore.setText("5"); spawnMin.setText("1500"); spawnMax.setText("4000"); maxAllowed.setText("15");
+                break;
+            case "Extreme":
+                duration.setText("30"); minCookies.setText("6"); maxCookies.setText("10"); minScore.setText("3"); 
+                maxScore.setText("5"); spawnMin.setText("1000"); spawnMax.setText("3000"); maxAllowed.setText("20");
+                break;
+        }
     }
 
     public void appendLog(String s){ log.append(s + "\n"); }

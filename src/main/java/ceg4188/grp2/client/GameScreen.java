@@ -30,6 +30,9 @@ public class GameScreen extends JFrame {
     private final GamePanel panel;
     private final JLabel totalLabel = new JLabel("Score: 0");
 
+    // Reference the parent for restarting the game
+    private final Runnable onRestart; 
+
     private final JLabel timerLabel = new JLabel("Time: 60s"); // New timer display.
 
     private final JTextArea log = new JTextArea();
@@ -38,7 +41,8 @@ public class GameScreen extends JFrame {
     private int timeRemaining = 60; // Has a 60 seconds game time.
 
 
-    public GameScreen() {
+    public GameScreen(Runnable onRestart) {
+        this.onRestart = onRestart;
         setTitle("Cookie Clicker - Game");
         setSize(1280,720);
         setResizable(false);
@@ -189,6 +193,17 @@ public class GameScreen extends JFrame {
             scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
             leaderboardDialog.add(scrollPane, BorderLayout.CENTER);
 
+            // For the play again buton
+            JButton playAgainButton = new JButton("Play Again");
+            playAgainButton.setBackground(new Color(34, 139, 34));
+            playAgainButton.setForeground(Color.WHITE);
+            playAgainButton.setFont(new Font("Arial", Font.BOLD, 14));
+            playAgainButton.addActionListener(e -> {
+                leaderboardDialog.dispose();  // Close dialog
+                this.dispose();  // Close game screen
+                onRestart.run();  // Restart to go back to the lobby
+            });
+
             // For the close button
             JButton closeButton = new JButton("Close");
             closeButton.setBackground(new Color(139, 69, 19));
@@ -201,6 +216,9 @@ public class GameScreen extends JFrame {
             JPanel buttonPanel = new JPanel();
             buttonPanel.setBackground(new Color(240, 248, 255));
             buttonPanel.add(closeButton);
+            // Add button to the button panel
+            buttonPanel.add(playAgainButton);
+
             leaderboardDialog.add(buttonPanel, BorderLayout.SOUTH);
             
             leaderboardDialog.setVisible(true);
@@ -209,5 +227,7 @@ public class GameScreen extends JFrame {
             panel.setEnabled(false);
 
         });
+
+     
     }
 }

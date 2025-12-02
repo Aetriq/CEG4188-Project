@@ -35,10 +35,6 @@ import ceg4188.grp2.shared.Protocol;
  */
 public class GamePanel extends JPanel {
 
-    // Variables for debugging
-    private int debugClickX = -1, debugClickY = -1;
-    private int debugClickWorldX = -1, debugClickWorldY = -1;
-
     // New variables
     private static final int COOKIE_RADIUS = 35;
     private static final int COOKIE_HITBOX_PADDING = 10;
@@ -55,7 +51,7 @@ public class GamePanel extends JPanel {
     private final GameScreen parent;
     private final Map<Integer, ViewCookie> cookies = new ConcurrentHashMap<>();
     private ImageIcon bg; // <-- NEW
-    private BufferedImage cookieImg, cookieOcc; // <-- Cookie images can stay as BufferedImage
+    private BufferedImage cookieImg;
     private PrintWriter out;
     private String username = "Player";
 
@@ -70,22 +66,6 @@ public class GamePanel extends JPanel {
 
         Timer t = new Timer(16, ev -> { tick(); repaint(); });
         t.start();
-
-        // A test cookie to very that things work.
-        spawnTestCookie();
-    }
-
-    // Test method.
-    private void spawnTestCookie() {
-        // Add a test cookie in the center to verify click detection
-        int testId = 999;
-        int centerX = WORLD_W / 2;
-        int centerY = WORLD_H / 2;
-        int testScore = 5;
-        
-        spawnCookie(testId, centerX, centerY, testScore);
-        parent.appendMessage("DEBUG: Test cookie spawned at center (" + centerX + "," + centerY + 
-                            ") with ID " + testId + " and score " + testScore);
     }
 
     // New method for cookie Owned
@@ -155,7 +135,6 @@ public class GamePanel extends JPanel {
             v.score--; // Deacreate the score by 1 on the client side.
         }
     }
-
 
     // New method for countdown animation.
     // Makes sure it syncs with the score.
@@ -406,17 +385,6 @@ public class GamePanel extends JPanel {
         // Concert screen coordinates to world coordinates.
         int wx = toWorldX(px), wy = toWorldY(py);
 
-        // DEBUG variables
-        debugClickX = px;
-        debugClickY = py;
-        debugClickWorldX = wx;
-        debugClickWorldY = wy;
-        repaint(); // Force redraw to show debug point
-
-        // DEBUG
-        System.out.println("DEBUG: Click at world coordinates: (" + wx + ", " + wy + ")");
-
-
         parent.appendMessage(" Click at (" + px + "," + py + ") => (" + wx + "," + wy + ")");
 
         // Check if there are any cookies
@@ -433,8 +401,6 @@ public class GamePanel extends JPanel {
 
             // Use the same hitbox as the hover hitbox.
             if (isPointInCookie(wx, wy, vc)) {
-                // DEBUG
-                System.out.println("DEBUG: Hit cookie " + vc.id + " at (" + vc.displayX + "," + vc.displayY + ")");
 
                 if (vc.locked && username.equals(vc.lockedBy)){
                     
@@ -498,7 +464,7 @@ public class GamePanel extends JPanel {
             startCookieClickAnimation(id);
         }
         
-        v.x=x; v.y=y; v.locked=locked; v.lockedBy=lockedBy; v.score=score;
+        v.x=x; v.y=y; v.locked=locked; v.lockedBy=lockedBy;
         cookies.put(id,v);
         repaint(); // Ensure that the visuals are updated.
     }
