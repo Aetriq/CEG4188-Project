@@ -60,10 +60,18 @@ public class ClientProtocolHandler extends Thread {
             case Protocol.JOIN_FAIL -> { JOptionPane.showMessageDialog(null, "Join failed: " + rest); }
             case Protocol.LOBBY_UPDATE -> lobby.updatePlayers(rest);
             case Protocol.LOBBY_SETTINGS -> lobby.applySettings(rest);
+
             case Protocol.START_GAME -> {
                 // startEpoch provided (not used here). Close lobby & open game
                 if (lobby != null) lobby.dispose();
-                game = new GameScreen();
+                game = new GameScreen(() -> {  // Lambda for restart
+                    // Recreate tje lobby and send JOIN again
+                    SwingUtilities.invokeLater(() -> {
+                        lobby = new LobbyScreen(username, out);
+                    });
+                    out.println(Protocol.JOIN + " " + username);
+                });
+
                 game.setUsername(username);
                 game.getGamePanel().setProtocolOut(out);
             }
@@ -97,14 +105,51 @@ public class ClientProtocolHandler extends Thread {
             }
             case Protocol.LOCK_GRANTED -> {
                 String[] f = rest.split(" ");
-                int id = Integer.parseInt(f[0]); String who = f[1];
-                if (who.equals(username)) out.println(Protocol.CLICK + " " + id);
+                int id = Integer.parseInt(f[0]); 
+                String who = f[1];
+
+                //DEBUG
+                System.out.println("DEBUG: Lock granted for cookie " + id + " to " + who);
+
+                if(game != null && game.getGamePanel() != null){
+                    game.getGamePanel().setCookieOwned(id, true);
+
+                }
+                if (who.equals(username)) {
+                    // Send the first click
+                    out.println(Protocol.CLICK + " " + id);
+                    
+                    // Keep track of which cookies the user owns.
+                    if (game != null && game.getGamePanel() != null) {
+                    }                    
+                }
             }
             case Protocol.LOCK_DENIED -> { /* show message */ }
+
             case Protocol.CLICKED -> {
                 String[] f = rest.split(" ");
-                int id=Integer.parseInt(f[0]); String who=f[1]; int score=Integer.parseInt(f[2]); int total=Integer.parseInt(f[3]);
-                if (game!=null) { game.appendMessage(who + " clicked cookie " + id + " +" + score); game.updateTotal(total); game.getGamePanel().releaseCookieVisual(id); }
+                int id=Integer.parseInt(f[0]); 
+                String who=f[1]; 
+                int scoreGained=Integer.parseInt(f[2]); 
+                int total=Integer.parseInt(f[3]);
+                if (game!=null) { 
+                    // Only show the messages if the cookie has despawned.
+                    if (scoreGained > 0){
+                        game.appendMessage(who + " destroyed cookie " + id + " +" + scoreGained + " points!"); 
+                    }else{
+                        int remainingClicks = (game.getGamePanel().getCookieScore(id) - 1);
+                        game.appendMessage(who + " clicked cookie " + id + " (" + 
+                        remainingClicks + " clicks left");
+                    }
+
+                    game.updateTotal(total); 
+                
+                    // Animation to start the countdown and update the cookie score.
+                    if (game.getGamePanel() != null){
+                        // Get the current cookie and decrease its score.
+                        game.getGamePanel().startCookieClickAnimation(id);
+                    }
+                }
             }
             case Protocol.COOKIE_COUNT -> {
                 if (game!=null) game.updateTotal(Integer.parseInt(rest.trim()));

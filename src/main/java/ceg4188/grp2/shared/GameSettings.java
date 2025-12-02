@@ -1,6 +1,12 @@
+/* CEG4188 - Final Project
+ * CrunchLAN Multiplayer Game
+ * GameSettings.java 
+ * Global Lobby/Server settings 
+ * 12-03-25
+ * Authors: Escalante, A., Gordon, A. 
+ */
 package ceg4188.grp2.shared;
 
-/** Lobby/Server settings */
 public class GameSettings {
     public int durationSeconds = 60;
     public int minCookies = 2;

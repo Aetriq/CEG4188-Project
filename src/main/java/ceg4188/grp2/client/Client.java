@@ -1,19 +1,24 @@
+/* CEG4188 - Final Project
+ * CrunchLAN Multiplayer Game
+ * Client.java 
+ * Client class: connects, opens Lobby then Game UI.
+ * 12-03-25
+ * Authors: Escalante, A., Gordon, A. 
+ */
 package ceg4188.grp2.client;
 
-import ceg4188.grp2.shared.Protocol;
-
-import javax.swing.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 
-/**
- * Client launcher - connects, opens Lobby then Game UI.
- */
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
 public class Client {
     public static void start(String username, String host, int port) {
-        SwingUtilities.invokeLater(() -> {
-            // nothing - UI will be created after handshake
-        });
+        SwingUtilities.invokeLater(() -> {});
 
         new Thread(() -> {
             try {
@@ -21,7 +26,6 @@ public class Client {
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
-                // create protocol handler which drives UI
                 ClientProtocolHandler handler = new ClientProtocolHandler(username, in, out, socket);
                 handler.start();
 
