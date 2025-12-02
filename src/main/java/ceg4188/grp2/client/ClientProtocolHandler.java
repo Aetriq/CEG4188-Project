@@ -97,8 +97,24 @@ public class ClientProtocolHandler extends Thread {
             }
             case Protocol.LOCK_GRANTED -> {
                 String[] f = rest.split(" ");
-                int id = Integer.parseInt(f[0]); String who = f[1];
-                if (who.equals(username)) out.println(Protocol.CLICK + " " + id);
+                int id = Integer.parseInt(f[0]); 
+                String who = f[1];
+
+                //DEBUG
+                System.out.println("DEBUG: Lock granted for cookie " + id + " to " + who);
+
+                if(game != null && game.getGamePanel() != null){
+                    game.getGamePanel().setCookieOwned(id, true);
+
+                }
+                if (who.equals(username)) {
+                    // Send the first click
+                    out.println(Protocol.CLICK + " " + id);
+                    
+                    // Keep track of which cookies the user owns.
+                    if (game != null && game.getGamePanel() != null) {
+                    }                    
+                }
             }
             case Protocol.LOCK_DENIED -> { /* show message */ }
 
@@ -111,10 +127,11 @@ public class ClientProtocolHandler extends Thread {
                 if (game!=null) { 
                     // Only show the messages if the cookie has despawned.
                     if (scoreGained > 0){
-                        game.appendMessage(who + " clicked cookie " + id + " +" + scoreGained); 
+                        game.appendMessage(who + " destroyed cookie " + id + " +" + scoreGained + " points!"); 
                     }else{
+                        int remainingClicks = (game.getGamePanel().getCookieScore(id) - 1);
                         game.appendMessage(who + " clicked cookie " + id + " (" + 
-                        (game.getGamePanel().getCookieScore(id) -1) + " clicks are left");
+                        remainingClicks + " clicks left");
                     }
 
                     game.updateTotal(total); 
@@ -125,7 +142,6 @@ public class ClientProtocolHandler extends Thread {
                         game.getGamePanel().updateCookieVisualScore(id);
                         game.getGamePanel().startCookieClickAnimation(id);
                     }
-                    game.getGamePanel().releaseCookieVisual(id);
                 }
             }
             case Protocol.COOKIE_COUNT -> {

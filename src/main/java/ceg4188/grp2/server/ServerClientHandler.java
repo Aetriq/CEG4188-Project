@@ -104,45 +104,67 @@ public class ServerClientHandler extends Thread {
                         if (c != null) broadcast(Protocol.COOKIE_SPAWN + " " + c.getId() + " " + c.getX() + " " + c.getY() + " " + c.getScore());
                     }
                 }
-                case Protocol.LOCK_REQUEST -> {
-                    String[] p = parts[0].equals(Protocol.LOCK_REQUEST) ? parts[1].split(" ") : parts[1].split(" ");
+                case Protocol.LOCK_REQUEST -> {                    
+                    String[] p = parts[1].split(" ");
                     int id = Integer.parseInt(p[0]);
+
+                     // DEBUG
+                    System.out.println("DEBUG: User " + username + " requested lock on cookie " + id);
+
+                    // A better lock
+                    Cookie cookie = state.getCookie(id);
+                    if (cookie == null){
+                        send(Protocol.LOCK_DENIED + " " + id + " Cookie does not exist");
+                        break;
+                    }
+
                     boolean ok = state.lockCookie(id, username);
                     if (ok) {
                         send(Protocol.LOCK_GRANTED + " " + id + " " + username);
-                        broadcast(Protocol.COOKIE_STATE + " " + id + " " + state.getCookie(id).getX()
-                                + " " + state.getCookie(id).getY() + " 1 " + username + " " + state.getCookie(id).getScore());
+                        // Update all clients with the locked state.
+                        broadcast(Protocol.COOKIE_STATE + " " + id + " " + cookie.getX()
+                        + " " + cookie.getY() + " 1 " + username + " " + cookie.getScore());
                     } else {
-                        send(Protocol.LOCK_DENIED + " " + id);
+                        String currentLocker = cookie.getLockedBy();
+                        send(Protocol.LOCK_DENIED + " " + id + " Alredy locked by " + currentLocker);
                     }
                 }
+
                 case Protocol.CLICK -> {
                 // expected: "CLICK <id>"
+
                 if (parts.length < 2) {
                     send(Protocol.MSG + " Missing cookie id for CLICK");
                     break;
                 }
                 try {
                     int id = Integer.parseInt(parts[1].trim());
+
+                    // DEBUG
+                    System.out.println("DEBUG: User " + username + " clicked cookie " + id);
+
                     Cookie cookie = state.getCookie(id);
                     String locker = (cookie == null) ? null : cookie.getLockedBy();
                     if (locker == null || !locker.equals(username)) {
                         send(Protocol.MSG + " You are not the locker of cookie " + id);
                         break;
                     }
-                    int gained = state.clickCookie(id, username);
+                    int gained = state.clickCookie(id, username); // This returns 1 per click.
 
                     // Get the updated cookie after a click
                     Cookie updatedCookie = state.getCookie(id);
                     if (updatedCookie != null){
                         // This means the score > 0
                         broadcast(Protocol.COOKIE_STATE + " " + id + " " + 
-                        updatedCookie.getX() + " " + updatedCookie.getY() + " 0 - " 
-                        + updatedCookie.getScore());
+                        updatedCookie.getX() + " " + updatedCookie.getY() + " 1 " + username + 
+                        " " + updatedCookie.getScore());
                         
                         broadcast(Protocol.CLICKED + " " + id + " " + username + " " + 0 + " " + state.getTotalScore());
                     }else{
-                        // The Cookie has reached a score of 0, give the points and despawn;
+                        // The cookie is destroyed
+                        send(Protocol.MSG + " Cookie" + id + " destroyed! " + username + 
+                        " earned " + gained + " point(s)");
+
                         broadcast(Protocol.CLICKED + " " + id + " " + username + " " + gained + " " + state.getTotalScore());
                         broadcast(Protocol.COOKIE_DESPAWN + " " + id);
                     }

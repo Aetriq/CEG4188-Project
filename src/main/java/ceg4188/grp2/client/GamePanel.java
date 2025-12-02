@@ -8,7 +8,7 @@ import java.awt.AlphaComposite;
 import java.awt.GradientPaint;
 import java.awt.event.ActionListener;
 import javax.swing.Timer;
-
+import javax.swing.text.View;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -21,12 +21,12 @@ import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
-import javax.swing.Timer;
 
 import ceg4188.grp2.shared.Protocol;
 
@@ -35,9 +35,19 @@ import ceg4188.grp2.shared.Protocol;
  */
 public class GamePanel extends JPanel {
 
+    // Variables for debugging
+    private int debugClickX = -1, debugClickY = -1;
+    private int debugClickWorldX = -1, debugClickWorldY = -1;
+
     // New variables
+    private static final int COOKIE_RADIUS = 35;
+    private static final int COOKIE_HITBOX_PADDING = 10;
+
     private BufferedImage[] cookieFrames = new BufferedImage[5]; // For the countdown animation.
     private Map<Integer, ViewCookie> animatingCookies = new ConcurrentHashMap<>();
+
+    // Field to keep track of which cookies a user owns.
+    private final Set<Integer> ownedCookies = ConcurrentHashMap.newKeySet();
 
     private int hoveredCookieId = -1; // This tracks which cookie is being hovered.
     private final Color HOVER_COLOR = new Color(0, 255, 0, 100); // Semi-transparent green color.
@@ -58,12 +68,33 @@ public class GamePanel extends JPanel {
 
         loadImages();
 
-        addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) { handleClick(e.getX(), e.getY()); }
-        });
-
         Timer t = new Timer(16, ev -> { tick(); repaint(); });
         t.start();
+
+        // A test cookie to very that things work.
+        spawnTestCookie();
+    }
+
+    // Test method.
+    private void spawnTestCookie() {
+        // Add a test cookie in the center to verify click detection
+        int testId = 999;
+        int centerX = WORLD_W / 2;
+        int centerY = WORLD_H / 2;
+        int testScore = 5;
+        
+        spawnCookie(testId, centerX, centerY, testScore);
+        parent.appendMessage("DEBUG: Test cookie spawned at center (" + centerX + "," + centerY + 
+                            ") with ID " + testId + " and score " + testScore);
+    }
+
+    // New method for cookie Owned
+    public void setCookieOwned(int cookieId, boolean owned) {
+        if (owned) {
+            ownedCookies.add(cookieId);
+        } else {
+            ownedCookies.remove(cookieId);
+        }
     }
 
     public void setProtocolOut(PrintWriter out) { this.out = out; }
@@ -73,28 +104,42 @@ public class GamePanel extends JPanel {
         try {
             // Use getResource() which returns a URL, perfect for ImageIcon
             bg = new ImageIcon(getClass().getResource("/images/background.png")); // <-- NEW
+            parent.appendMessage("Background loaded " + (bg != null));
             
             // Add the cookie animation for the countdown of (5,4,3,2,1)
-            for (int i = 0; i<5; i++ ){
-                try (InputStream is = getClass().getResourceAsStream("/images/cookie_" + (5-i) + ".png")) 
-                {
+            for (int i = 0; i < 5; i++ ){
+                String imageName = "/images/cookie_" + (i + 1) + ".png";
+                
+                try (InputStream is = getClass().getResourceAsStream(imageName)) {
                     if (is != null) {
                         cookieFrames[i] = ImageIO.read(is);
+                        parent.appendMessage("Loaded " + imageName);
                     }else{
-                        System.err.println("Could not load cookie_" + (5-i) + ".png");
-                          } 
+                        parent.appendMessage("Warning: Could not load " + imageName);
+                        // Simple image as fallback
+                        BufferedImage fallback = new BufferedImage(56, 56, BufferedImage.TYPE_INT_ARGB);
+                        Graphics2D g2 = fallback.createGraphics();
+                        g2.setColor(new Color(255, 223, 186));
+                        g2.fillOval(0, 0, 56, 56);
+                        g2.setColor(Color.BLACK);
+                        g2.drawOval(0, 0, 55, 55);
+                        g2.dispose();
+                        cookieFrames[i] = fallback;
+                    } 
                 } 
                 catch(Exception e){
-                    System.err.println("Error loading cookie_" + (5-i) + ".png: " + e.getMessage());
+                    System.err.println("Error loading " + imageName);
                 }
             } 
-        }
+            if (cookieFrames[0] != null) {
+            cookieImg = cookieFrames[0];
+            }
 
-        catch (Exception ignored) { System.err.println("Failed to load background"); }
-        
-        // These are still fine as BufferedImages
-        try (InputStream is = getClass().getResourceAsStream("/images/cookie.png")) { if (is!=null) cookieImg = ImageIO.read(is); } catch (Exception ignored){}
-        try (InputStream is = getClass().getResourceAsStream("/images/cookie_occupied.png")) { if (is!=null) cookieOcc = ImageIO.read(is); } catch (Exception ignored){}
+        }
+        catch (Exception e) { 
+            parent.appendMessage("CRITICAL ERROR loading images: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // New method to get the current cookie score.
@@ -160,7 +205,7 @@ public class GamePanel extends JPanel {
 
     // New mthod when the cookie is completely destroyed.
     public void startCookieDestructionAnimation(int cookieId){
-        ViewCookie v = cookies.get(cookieId);
+        ViewCookie v = cookies.remove(cookieId); // Remove form the main map.
         if (v != null){
             v.animating = true;
             v.animationFrame = 0;
@@ -174,13 +219,13 @@ public class GamePanel extends JPanel {
                     if (cookie != null) {
                         cookie.animationFrame++;
                         // Shrink and fade out
-                        cookie.scale = 1.0f - (cookie.animationFrame * 0.2f);
+                        cookie.scale = 1.0f - (cookie.animationFrame * 0.25f);
                         
-                        if (cookie.animationFrame >= 5) {
+                        if (cookie.animationFrame >= 4) {
                             cookie.animating = false;
                             animatingCookies.remove(cookieId);
-                            cookies.remove(cookieId); // Remove from main cookie list
                             ((Timer)e.getSource()).stop();
+                            parent.appendMessage("Cookie " + cookieId + " fully destroyed");
                         }
                         repaint();
                     } else {
@@ -196,13 +241,23 @@ public class GamePanel extends JPanel {
     @Override
     public void addNotify() {
         super.addNotify();
-        // This adds a mouse motion listener for hover effects
-        addMouseMotionListener(new MouseAdapter() {
+
+        // Adapter that handles both click and movement.
+        MouseAdapter mouseHandler = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                // MusePressed fires immediatly when the button is pressed.
+                handleClick(e.getX(), e.getY());
+            }
+
             @Override
             public void mouseMoved(MouseEvent e) {
                 updateHoveredCookie(e.getX(), e.getY());
             }
-        });
+        };
+        // Add both listeners to the same adapter
+        addMouseListener(mouseHandler);
+        addMouseMotionListener(mouseHandler);
     }
 
     private void updateHoveredCookie(int px, int py) {
@@ -213,7 +268,7 @@ public class GamePanel extends JPanel {
         for (ViewCookie vc : cookies.values()) {
             int dx = wx - vc.x, dy = wy - vc.y;
             // Slightly larger hitbox for better usability (increased from 28 to 35)
-            if (dx*dx + dy*dy <= 35*35) {
+            if (isPointInCookie(wx, wy, vc)) {
                 hoveredCookieId = vc.id;
                 break;
             }
@@ -225,8 +280,19 @@ public class GamePanel extends JPanel {
         }
     }
 
+    // Method for improved hitbox detection
+    private boolean isPointInCookie(int x, int y, ViewCookie cookie) { 
+        int dx = x - cookie.x, dy = y - cookie.y;
+        int hitboxRadius = COOKIE_RADIUS + COOKIE_HITBOX_PADDING;
+        return dx * dx + dy * dy <= hitboxRadius * hitboxRadius;
+    }
+
     /// NEw method for cookie drawing
     private void drawCookie(Graphics2D g2, ViewCookie v){
+        // Don't draw te cookies that are being destroyed
+        if (v.score <= 0 && v.animating && v.animationFrame >= 3){
+            return; 
+        }
         int size = 56, half = size / 2;
         int cx = v.displayX, cy = v.displayY;
 
@@ -245,79 +311,81 @@ public class GamePanel extends JPanel {
 
         BufferedImage imgToUse = null;
 
-        // Chose the image depending on the score
-        if (v.locked) {
-        imgToUse = cookieOcc;
-        // Add red tint overlay
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-        } else{
-            if(v.score >=1 && v.score <= 5){
-                // This shows the image that matches the current score of the cookie.
-                // score 5 --> cookie_5.png, score 4 --> cookie_4.png ...
-
-                int imageIndex = 5 - v.score; // score 5 --> index 0 ect.
-
-                if(cookieFrames != null && imageIndex >= 0 && imageIndex < cookieFrames.length && cookieFrames[imageIndex] != null){
+        if (v.score >=1 && v.score <= 5){
+            int imageIndex = v.score -1; 
+            if (cookieFrames != null && imageIndex >= 0 && imageIndex < cookieFrames.length){
                     imgToUse = cookieFrames[imageIndex];
-                }else{
-                    imgToUse = cookieImg; // This is the fallback.
-                }
-
-            }else{
-                // Otherwise we just use the default cookie image.
-                imgToUse = cookieImg;
             }
         }
+
+         // Fallback to default image
+        if (imgToUse == null && cookieImg != null) {
+            imgToUse = cookieImg;
+        }
         
-        
-        // Here we draw the cookie image or fallback
+        // Draw the cookie 
         if (imgToUse != null) {
-        g2.drawImage(imgToUse, cx - half, cy - half, size, size, null);
+            // Apply red tint for locked cookies
+            if (v.locked) {
+                // Draw the cookie image first
+                g2.drawImage(imgToUse, cx - half, cy - half, size, size, null);
+                // Then overlay a red tint
+                g2.setColor(new Color(255, 0, 0, 100)); // Semi-transparent red
+                g2.fillOval(cx - half, cy - half, size, size);
+                // Draw a red border
+                g2.setColor(Color.RED);
+                g2.setStroke(new java.awt.BasicStroke(3));
+                g2.drawOval(cx - half, cy - half, size, size);
+            } else {
+                // Draw normally if not locked
+                g2.drawImage(imgToUse, cx - half, cy - half, size, size, null);
+            }
         } else {
-            // Enhanced fallback drawing
-            Color cookieColor = v.animating ? new Color(255, 200, 100) : 
-                            v.locked ? new Color(255, 150, 150) : 
-                            new Color(255, 223, 186);
+            // Fallback to drawng with colored circles.
+             Color cookieColor = v.animating ? new Color(255, 200, 100) : 
+                v.locked ? new Color(255, 150, 150) : 
+                new Color(255, 223, 186);
             g2.setColor(cookieColor);
             g2.fillOval(cx - half, cy - half, size, size);
             g2.setColor(Color.BLACK);
             g2.drawOval(cx - half, cy - half, size, size);
+            
+            // Draw the score in the center for the fallback
+            if (v.score > 0) {
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Times New Roman", Font.BOLD, 14));
+                String scoreText = String.valueOf(v.score);
+                int textWidth = g2.getFontMetrics().stringWidth(scoreText);
+                g2.drawString(scoreText, cx - textWidth/2, cy + 5);
+            }
+        }
+        // Draw the score above the cookie only if its score is > 0.
+        if (v.score > 0) {
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font("SansSerif", Font.BOLD, 14));
+            String scoreText = String.valueOf(v.score);
+            int textWidth = g2.getFontMetrics().stringWidth(scoreText);
+                
+            // The background text for readability
+            g2.setColor(new Color(0, 0, 0, 128));
+            g2.fillRoundRect(cx - textWidth/2 - 3, cy - half - 20, textWidth + 6, 16, 8, 8);
+                
+            // Draw the score
+            g2.setColor(Color.WHITE);
+            g2.drawString(scoreText, cx - textWidth/2, cy - half - 6);
         }
 
-        // We reset the composite
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-
-        // Better Score Display
-        g2.setColor(Color.WHITE);
-        g2.setFont(new Font("SansSerif", Font.BOLD, 14));
-        String scoreText = String.valueOf(v.score);
-        int textWidth = g2.getFontMetrics().stringWidth(scoreText);
-        
-        // Add text background for better readability
-        g2.setColor(new Color(0, 0, 0, 128));
-        g2.fillRoundRect(cx - textWidth/2 - 3, cy - half - 20, textWidth + 6, 16, 8, 8);
-        
-        // Draw the score
-        g2.setColor(Color.WHITE);
-        g2.drawString(scoreText, cx - textWidth/2, cy - half - 6);
-
-        // Enhanced the lock display
-        if (v.locked) {
-            g2.setColor(Color.RED);
-            g2.setFont(new Font("SansSerif", Font.BOLD, 10));
-            String lockText = "Locked: " + v.lockedBy;
-            int lockWidth = g2.getFontMetrics().stringWidth(lockText);
-            g2.drawString(lockText, cx - lockWidth/2, cy + half + 15);
-        }
-
-        // Draw the hibox outline
-        if(v.id == hoveredCookieId){
+        // Draw the hitbox outline.
+        if (v.id == hoveredCookieId) {
             g2.setColor(Color.GREEN);
             g2.setStroke(new java.awt.BasicStroke(2));
-            g2.drawOval(cx -35, cy - 35, 70, 70);
+            g2.drawOval(cx - (COOKIE_RADIUS + COOKIE_HITBOX_PADDING), 
+                        cy - (COOKIE_RADIUS + COOKIE_HITBOX_PADDING), 
+                        (COOKIE_RADIUS + COOKIE_HITBOX_PADDING) * 2, 
+                        (COOKIE_RADIUS + COOKIE_HITBOX_PADDING) * 2);
         }
 
-        // Reset transforms if we applied animation
+        // Reset the transforms if applied the animation
         if (v.animating) {
             g2.translate(cx, cy);
             g2.scale(1.0f/v.scale, 1.0f/v.scale);
@@ -325,20 +393,70 @@ public class GamePanel extends JPanel {
         }
     }
 
-    private int toWorldX(int px) { return (int)(px * (WORLD_W / (double)getWidth())); }
-    private int toWorldY(int py) { return (int)(py * (WORLD_H / (double)getHeight())); }
+    private int toWorldX(int px) { 
+        // SInce the panel might be scaled, we need to map the pixel position to the world position.
+        return (int)((px * WORLD_W) / (double)getWidth()); 
+    }
+    private int toWorldY(int py) { 
+        // Convert the screen y cooridinates to world y coordinates.
+        return (int)((py * WORLD_H) / (double)getHeight()); 
+    }
 
     private void handleClick(int px, int py) {
+        // Concert screen coordinates to world coordinates.
         int wx = toWorldX(px), wy = toWorldY(py);
-        for (ViewCookie vc : cookies.values()) {
-            int dx = wx - vc.x, dy = wy - vc.y;
-            if (dx*dx + dy*dy <= 28*28) {
-                if (out!=null) out.println(Protocol.LOCK_REQUEST + " " + vc.id);
-                else parent.appendMessage("Not connected");
+
+        // DEBUG variables
+        debugClickX = px;
+        debugClickY = py;
+        debugClickWorldX = wx;
+        debugClickWorldY = wy;
+        repaint(); // Force redraw to show debug point
+
+        // DEBUG
+        System.out.println("DEBUG: Click at world coordinates: (" + wx + ", " + wy + ")");
+
+
+        parent.appendMessage(" Click at (" + px + "," + py + ") => (" + wx + "," + wy + ")");
+
+        // Check if there are any cookies
+         if (cookies.isEmpty()) {
+            parent.appendMessage("ERROR: No cookies in the game!");
+            return;
+        }
+        
+        // Check the cookies from to to bottom.
+        ViewCookie[] cookieArray = cookies.values().toArray(new ViewCookie[0]);
+        
+        for (int i = cookieArray.length - 1; i >= 0; i--) {
+            ViewCookie vc = cookieArray[i];
+
+            // Use the same hitbox as the hover hitbox.
+            if (isPointInCookie(wx, wy, vc)) {
+                // DEBUG
+                System.out.println("DEBUG: Hit cookie " + vc.id + " at (" + vc.displayX + "," + vc.displayY + ")");
+
+                if (vc.locked && username.equals(vc.lockedBy)){
+                    
+                    // User alredy own this cookie
+                    parent.appendMessage("Clicking owned cookie " + vc.id);
+                    if (out != null) {
+                        out.println(Protocol.CLICK + " " + vc.id);
+                    }
+                } else if (!vc.locked){
+                    // The cookie is free.
+                    parent.appendMessage("Requesting lock on cookie " + vc.id);
+                    if (out != null){
+                        out.println(Protocol.LOCK_REQUEST + " " + vc.id);
+                    }
+                } else {
+                    // Cookie is locked by someone else
+                    parent.appendMessage("Cookie " + vc.id + " locked by " + vc.lockedBy);
+                }
                 return;
             }
         }
-        parent.appendMessage("No cookie at that position.");
+        parent.appendMessage("Missed - no cookies hit");
     }
 
     public void spawnCookie(int id,int x,int y,int score){
@@ -346,7 +464,7 @@ public class GamePanel extends JPanel {
     }
 
     public void despawnCookie(int id){ 
-        startCookieClickAnimation(id);
+        startCookieDestructionAnimation(id);
     }
 
     public void moveCookie(int id,int x,int y,long ts){
@@ -357,24 +475,40 @@ public class GamePanel extends JPanel {
     }
 
     // 
-    public void setCookieState(int id,int x,int y,boolean locked,String lockedBy,int score){
+    public void setCookieState(int id, int x, int y, boolean locked, String lockedBy, int score){
         ViewCookie v = cookies.get(id);
         if (v==null) {
             v = new ViewCookie(id,x,y,score);
-        }else{
-            // We must check if the score has changed and use the animation.
-            if (v.score != score){
-                v.score = score;
-                if (score > 0){
-                    startCookieClickAnimation(id);
-                }
-            }
+            cookies.put(id, v);
+            return;
         }
+
+        // Track if the user owns this cookie
+        if (locked && username.equals(lockedBy)){
+            ownedCookies.add(id);
+        }else if (!locked) { 
+            ownedCookies.remove(id);
+        }
+
+        // Only change the animation if the score changed and it has not been destroyed
+        if (v.score != score && score > 0){
+            startCookieClickAnimation(id);
+        }
+        
         v.x=x; v.y=y; v.locked=locked; v.lockedBy=lockedBy; v.score=score;
         cookies.put(id,v);
+        repaint(); // Ensure that the visuals are updated.
     }
 
-    public void releaseCookieVisual(int id){ ViewCookie v = cookies.get(id); if (v!=null) { v.locked=false; v.lockedBy="-"; } }
+    public void releaseCookieVisual(int id){ 
+        ViewCookie v = cookies.get(id); 
+        if (v!=null) { 
+            v.locked=false; 
+            v.lockedBy="-"; 
+            ownedCookies.remove(id); // The user no longer owns it.
+            repaint(); // Trigger the repaint to update the visuals.
+        } 
+    }
 
     private void tick() {
         // simple interpolation: move displayX toward x by 20% of delta
@@ -406,13 +540,15 @@ public class GamePanel extends JPanel {
         g2.scale(sx, sy);
 
         for (ViewCookie v : cookies.values()) {
-            drawCookie(g2, v);
+            if (!v.animating || !animatingCookies.containsKey(v.id)){
+                drawCookie(g2, v);
+            }
         }
 
+        // Draw animating cookies.
         for (ViewCookie v : animatingCookies.values()){
             drawCookie(g2, v);
         }
-
         g2.dispose();
     }
 
