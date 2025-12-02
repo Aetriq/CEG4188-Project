@@ -38,11 +38,12 @@ public class GameScreen extends JFrame {
     private final JTextArea log = new JTextArea();
     private String username = "Player";
     private Timer gameTimer; // Game timer.
-    private int timeRemaining = 60; // Has a 60 seconds game time.
+    private int timeRemaining; 
 
 
-    public GameScreen(Runnable onRestart) {
+    public GameScreen(Runnable onRestart, int durationSeconds) {
         this.onRestart = onRestart;
+        this.timeRemaining = durationSeconds; // Form the parameter.
         setTitle("Cookie Clicker - Game");
         setSize(1280,720);
         setResizable(false);

@@ -63,6 +63,10 @@ public class ClientProtocolHandler extends Thread {
 
             case Protocol.START_GAME -> {
                 // startEpoch provided (not used here). Close lobby & open game
+                long endEpoch = Long.parseLong(rest.trim());
+                long currentTime = System.currentTimeMillis();
+                int durationSeconds = (int) ((endEpoch - currentTime) / 1000); // 
+
                 if (lobby != null) lobby.dispose();
                 game = new GameScreen(() -> {  // Lambda for restart
                     // Recreate tje lobby and send JOIN again
@@ -70,7 +74,7 @@ public class ClientProtocolHandler extends Thread {
                         lobby = new LobbyScreen(username, out);
                     });
                     out.println(Protocol.JOIN + " " + username);
-                });
+                }, durationSeconds);
 
                 game.setUsername(username);
                 game.getGamePanel().setProtocolOut(out);
