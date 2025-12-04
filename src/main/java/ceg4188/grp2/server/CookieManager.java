@@ -1,3 +1,10 @@
+/* CEG4188 - Final Project
+ * CrunchLAN Multiplayer Game
+ * CookieManager.java 
+ * Moves/spawns/despawns cookies while gameRunning.
+ * 12-03-25
+ * Authors: Escalante, A., Gordon, A. 
+ */
 package ceg4188.grp2.server;
 
 import java.util.List;
@@ -7,9 +14,6 @@ import ceg4188.grp2.shared.Cookie;
 import ceg4188.grp2.shared.GameState;
 import ceg4188.grp2.shared.Protocol;
 
-/**
- * Moves/spawns/despawns cookies while gameRunning.
- */
 public class CookieManager implements Runnable {
     private final GameState state;
     private final List<ServerClientHandler> clients;

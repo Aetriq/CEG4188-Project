@@ -1,7 +1,11 @@
+/* CEG4188 - Final Project
+ * CrunchLAN Multiplayer Game
+ * Server.java 
+ * Core Server launcher (server-only).
+ * 12-03-25
+ * Authors: Escalante, A., Gordon, A. 
+ */
 package ceg4188.grp2.server;
-
-import ceg4188.grp2.shared.GameSettings;
-import ceg4188.grp2.shared.GameState;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -9,6 +13,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+
+import ceg4188.grp2.shared.GameState;
 
 /**
  * Server launcher (server-only).

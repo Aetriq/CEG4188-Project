@@ -1,3 +1,10 @@
+/* CEG4188 - Final Project
+ * CrunchLAN Multiplayer Game
+ * GameState.java 
+ * Thread-safe server-side game state (players, cookies, scores). 
+ * 12-03-25
+ * Authors: Escalante, A., Gordon, A. 
+ */
 package ceg4188.grp2.shared;
 
 import java.util.ArrayList;
@@ -63,11 +70,32 @@ public class GameState {
     public synchronized int clickCookie(int id, String username){
         Cookie c = cookies.get(id);
         if (c==null) return -1;
-        int s = c.getScore();
-        c.unlock();
-        totalScore += s;
-        scores.put(username, scores.getOrDefault(username, 0) + s);
-        return s;
+
+        // Check if the user owns the lock
+        if (!username.equals(c.getLockedBy())){
+            return -1; // The user dosen't own the lock.
+        }
+
+        // Decrease the cookie score by 1.
+        int currentScore = c.getScore();
+        if (currentScore > 0){
+            currentScore --; // Decrease the score by 1;
+            c.setScore(currentScore);
+        }
+        // Give 1 point for each click
+        int pointsEarned = 1; 
+        totalScore += pointsEarned;
+        scores.put(username, scores.getOrDefault(username, 0) + pointsEarned);
+    
+        // Only destroy the cookie once its score is 0
+        if (currentScore <= 0){
+            despawnCookie(id); // Remove the cookie when it reaches 0;
+            c.unlock(); // Unlock the cookie only when destroyed.
+            return pointsEarned; 
+        } else{
+            // The cookie still needs to be cliked.
+            return pointsEarned; // Still give 1 point for the click.
+        }
     }
 
     // settings / game control

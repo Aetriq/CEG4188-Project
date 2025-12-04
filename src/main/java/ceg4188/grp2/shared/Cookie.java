@@ -1,15 +1,23 @@
+/* CEG4188 - Final Project
+ * CrunchLAN Multiplayer Game
+ * Cookie.java 
+ * Server-side cookie model with all information unique to each cookie.
+ * 12-03-25
+ * Authors: Escalante, A., Gordon, A. 
+ */
 package ceg4188.grp2.shared;
 
-/** Server-side cookie model */
 public class Cookie {
     private final int id;
     private int x, y;
     private int score;
+    private final int initialScore; 
     private boolean locked = false;
     private String lockedBy = null;
 
     public Cookie(int id, int x, int y, int score) {
         this.id = id; this.x = x; this.y = y; this.score = score;
+        this.initialScore =score;
     }
     public int getId(){ return id; }
     public synchronized int getX(){ return x; }
@@ -19,6 +27,7 @@ public class Cookie {
     public synchronized void setScore(int s){ score=s; }
     public synchronized boolean isLocked(){ return locked; }
     public synchronized String getLockedBy(){ return lockedBy; }
+    public synchronized int getInitialScore() {return initialScore;}
     public synchronized boolean lock(String user){
         if (!locked){ locked=true; lockedBy=user; return true; }
         return false;
