@@ -1,1 +1,13 @@
+# Ignore the entire Java build output directory 
+/target/
+
+# Ignore all compiled Java class files.
 *.class
+
+# Ignore specific log files and all files ending in .log
+server_audit.log
+*.log
+
+# Ignore IDE/OS specific files 
+.idea/
+.DS_Store
