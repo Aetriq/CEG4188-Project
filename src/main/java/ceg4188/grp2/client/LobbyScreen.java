@@ -56,7 +56,7 @@ public class LobbyScreen extends JFrame {
 
     public LobbyScreen(String username, PrintWriter out) {
         this.username = username; this.out = out;
-        setTitle("Lobby - " + username);
+        setTitle("CrunchLAN Lobby - " + username);
         setSize(1280, 720);
         setResizable(false);
         setLocationRelativeTo(null);
@@ -108,20 +108,22 @@ public class LobbyScreen extends JFrame {
         String selected = (String) difficultyBox.getSelectedItem();
         switch (selected) {
             case "Easy":
-                duration.setText("120"); minCookies.setText("1"); maxCookies.setText("4"); minScore.setText("1"); 
-                maxScore.setText("2"); spawnMin.setText("3000"); spawnMax.setText("6000"); maxAllowed.setText("10");
+                duration.setText("60"); minCookies.setText("1"); maxCookies.setText("4"); minScore.setText("1"); 
+                maxScore.setText("2"); spawnMin.setText("2000"); spawnMax.setText("4200"); maxAllowed.setText("10");
                 break;
             case "Medium":
-                duration.setText("60"); minCookies.setText("2"); maxCookies.setText("6"); minScore.setText("1"); 
-                maxScore.setText("5"); spawnMin.setText("2000"); spawnMax.setText("5000"); maxAllowed.setText("12");
+                duration.setText("50"); minCookies.setText("2"); maxCookies.setText("6"); minScore.setText("1"); 
+                maxScore.setText("5"); spawnMin.setText("1200"); spawnMax.setText("3200"); maxAllowed.setText("12");
                 break;
             case "Hard":
-                duration.setText("45"); minCookies.setText("4"); maxCookies.setText("8"); minScore.setText("3"); 
-                maxScore.setText("5"); spawnMin.setText("1500"); spawnMax.setText("4000"); maxAllowed.setText("15");
+                // Reduced the time, allowded more cookies on screen ,and increase cookie spawn rate. 
+                duration.setText("40"); minCookies.setText("5"); maxCookies.setText("12"); minScore.setText("3"); 
+                maxScore.setText("5"); spawnMin.setText("900"); spawnMax.setText("2200"); maxAllowed.setText("18");
                 break;
             case "Extreme":
-                duration.setText("30"); minCookies.setText("6"); maxCookies.setText("10"); minScore.setText("3"); 
-                maxScore.setText("5"); spawnMin.setText("1000"); spawnMax.setText("3000"); maxAllowed.setText("20");
+                // Reduced the time even more, allowed even more cookies on screen ,and more cookie spawn rate. 
+                duration.setText("25"); minCookies.setText("8"); maxCookies.setText("15"); minScore.setText("3"); 
+                maxScore.setText("5"); spawnMin.setText("800"); spawnMax.setText("1900"); maxAllowed.setText("25");
                 break;
         }
     }

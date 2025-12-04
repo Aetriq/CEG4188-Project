@@ -52,7 +52,8 @@ public class MenuScreen extends JFrame {
     private final JButton startBtn = new JButton("Start");
 
     public MenuScreen() {
-        setTitle("Cookie Clicker - Menu");
+
+        setTitle("CrunchLAN - Menu");
         setSize(700, 650); // Bigger for better layout.
         setLocationRelativeTo(null);
         setResizable(false);
@@ -65,7 +66,8 @@ public class MenuScreen extends JFrame {
         mainPanel.setBackground(new Color(245, 245, 255)); // A nice blue background/
 
         // A Title
-        JLabel titleLabel = new JLabel("Cookie Clicker", SwingConstants.CENTER);
+
+        JLabel titleLabel = new JLabel("CrunchLAN", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 36));
         titleLabel.setForeground(new Color(139, 69, 19)); // A nice brown color.
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));

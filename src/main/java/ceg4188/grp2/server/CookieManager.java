@@ -29,8 +29,12 @@ public class CookieManager implements Runnable {
             try { Thread.sleep(200); } catch (InterruptedException e) { break; }
             if (!state.isGameRunning()) continue;
 
+            // Calculate a dynamic spawn propability from the difficulty settings.
+             int avgSpawnMs = (state.getSettings().spawnMinMs + state.getSettings().spawnMaxMs) / 2;
+            double spawnProbability = 200.0 / avgSpawnMs;  // 200ms loop interval, probability per loop
+
             // spawn occasionally
-            if (rnd.nextDouble() < 0.05) {
+            if (rnd.nextDouble() <spawnProbability) {
                 Cookie c = state.spawnRandomCookie();
                 if (c != null) broadcast(Protocol.COOKIE_SPAWN + " " + c.getId() + " " + c.getX() + " " + c.getY() + " " + c.getScore());
             }

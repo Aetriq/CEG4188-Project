@@ -348,7 +348,7 @@ public class GamePanel extends JPanel {
         // Draw the score above the cookie only if its score is > 0.
         if (v.score > 0) {
             g2.setColor(Color.WHITE);
-            g2.setFont(new Font("SansSerif", Font.BOLD, 14));
+            g2.setFont(new Font("Times New Roman", Font.BOLD, 14));
             String scoreText = String.valueOf(v.score);
             int textWidth = g2.getFontMetrics().stringWidth(scoreText);
                 
@@ -392,8 +392,6 @@ public class GamePanel extends JPanel {
         // Concert screen coordinates to world coordinates.
         int wx = toWorldX(px), wy = toWorldY(py);
 
-        parent.appendMessage(" Click at (" + px + "," + py + ") => (" + wx + "," + wy + ")");
-
         // Check if there are any cookies
          if (cookies.isEmpty()) {
             parent.appendMessage("ERROR: No cookies in the game!");
@@ -417,8 +415,6 @@ public class GamePanel extends JPanel {
                         out.println(Protocol.CLICK + " " + vc.id);
                     }
                 } else if (!vc.locked){
-                    // The cookie is free.
-                    parent.appendMessage("Requesting lock on cookie " + vc.id);
                     if (out != null){
                         out.println(Protocol.LOCK_REQUEST + " " + vc.id);
                     }

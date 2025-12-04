@@ -45,12 +45,13 @@ public class GameScreen extends JFrame {
     private final JTextArea log = new JTextArea();
     private String username = "Player";
     private Timer gameTimer; // Game timer.
-    private int timeRemaining = 60; // Has a 60 seconds game time.
+    private int timeRemaining; 
 
 
-    public GameScreen(Runnable onRestart) {
+    public GameScreen(Runnable onRestart, int durationSeconds) {
         this.onRestart = onRestart;
-        setTitle("Cookie Clicker - Game");
+        this.timeRemaining = durationSeconds; // Form the parameter.
+        setTitle("CrunchLAN - Game");
         setSize(1280,720);
         setResizable(false);
         setLocationRelativeTo(null);
@@ -67,12 +68,12 @@ public class GameScreen extends JFrame {
         JPanel topInfo = new JPanel(new GridLayout(2, 1)); 
 
         totalLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        totalLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        totalLabel.setFont(new Font("Times New Roman", Font.BOLD, 20));
 
 
         // New timer label
         timerLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        timerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        timerLabel.setFont(new Font("Times New Roman", Font.BOLD, 18));
         timerLabel.setForeground(Color.BLUE);
 
         topInfo.add(totalLabel);
@@ -143,7 +144,8 @@ public class GameScreen extends JFrame {
 
             // TItle for the game over
              JLabel titleLabel = new JLabel("Game Over!", SwingConstants.CENTER);
-            titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+
+            titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 28));
             titleLabel.setForeground(new Color(139, 69, 19));
             titleLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
             leaderboardDialog.add(titleLabel, BorderLayout.NORTH);
@@ -155,7 +157,8 @@ public class GameScreen extends JFrame {
             scoresPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
              JLabel scoresTitle = new JLabel("Final Scores:", SwingConstants.CENTER);
-            scoresTitle.setFont(new Font("Arial", Font.BOLD, 20));
+
+            scoresTitle.setFont(new Font("Times New Roman", Font.BOLD, 20));
             scoresTitle.setAlignmentX(CENTER_ALIGNMENT);
             scoresPanel.add(scoresTitle);
             scoresPanel.add(Box.createRigidArea(new Dimension(0, 15)));
@@ -173,14 +176,15 @@ public class GameScreen extends JFrame {
                     playerPanel.setMaximumSize(new Dimension(400, 40));
                     
                     JLabel rankLabel = new JLabel((i + 1) + ". ");
-                    rankLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+                    rankLabel.setFont(new Font("Times New Roman", Font.BOLD, 16));
                     rankLabel.setForeground(new Color(139, 69, 19));
                     
                     JLabel nameLabel = new JLabel(playerName);
-                    nameLabel.setFont(new Font("Arial", Font.BOLD, 16));
+                    nameLabel.setFont(new Font("Times New Roman", Font.BOLD, 16));
                     
                     JLabel scoreLabel = new JLabel(score + " points");
-                    scoreLabel.setFont(new Font("Arial", Font.BOLD, 16));
+                    scoreLabel.setFont(new Font("Times New Roman", Font.BOLD, 16));
                     scoreLabel.setForeground(new Color(0, 100, 0));
                     
                     playerPanel.add(rankLabel, BorderLayout.WEST);
@@ -204,7 +208,8 @@ public class GameScreen extends JFrame {
             JButton playAgainButton = new JButton("Play Again");
             playAgainButton.setBackground(new Color(34, 139, 34));
             playAgainButton.setForeground(Color.WHITE);
-            playAgainButton.setFont(new Font("Arial", Font.BOLD, 14));
+
+            playAgainButton.setFont(new Font("Times New Roman", Font.BOLD, 14));
             playAgainButton.addActionListener(e -> {
                 leaderboardDialog.dispose();  // Close dialog
                 this.dispose();  // Close game screen
@@ -215,7 +220,8 @@ public class GameScreen extends JFrame {
             JButton closeButton = new JButton("Close");
             closeButton.setBackground(new Color(139, 69, 19));
             closeButton.setForeground(Color.WHITE);
-            closeButton.setFont(new Font("Arial", Font.BOLD, 14));
+
+            closeButton.setFont(new Font("Times New Roman", Font.BOLD, 14));
             closeButton.setFocusPainted(false);
             closeButton.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
             closeButton.addActionListener(e -> leaderboardDialog.dispose());
@@ -232,9 +238,6 @@ public class GameScreen extends JFrame {
 
             // Disable the main game panel now that the game is over
             panel.setEnabled(false);
-
         });
-
-     
     }
 }
