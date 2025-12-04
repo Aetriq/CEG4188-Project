@@ -1,3 +1,11 @@
+/* CEG4188 - Final Project
+ * CrunchLAN Multiplayer Game
+ * ClientProtocol.java 
+ * Client side handler. Receives server protocol messages and updates UI accordinly.
+ * Acts as the bridge between network comminocation and client user interface.
+ * 12-03-25
+ * Authors: Escalante, A., Gordon, A. 
+ */
 package ceg4188.grp2.client;
 
 import java.io.BufferedReader;
