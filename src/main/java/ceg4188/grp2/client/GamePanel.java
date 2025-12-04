@@ -341,7 +341,7 @@ public class GamePanel extends JPanel {
         // Draw the score above the cookie only if its score is > 0.
         if (v.score > 0) {
             g2.setColor(Color.WHITE);
-            g2.setFont(new Font("SansSerif", Font.BOLD, 14));
+            g2.setFont(new Font("Times New Roman", Font.BOLD, 14));
             String scoreText = String.valueOf(v.score);
             int textWidth = g2.getFontMetrics().stringWidth(scoreText);
                 
